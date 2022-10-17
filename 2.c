@@ -6,30 +6,64 @@
 #define POSITIVE 1
 
 enum ClassId { S_ASC, S_INIT, S_CONT };
-enum ClassId utf8Class( unsigned char *c );
 struct fieldParams { int size; int pos; unsigned char val; int arr[ARRAY_SIZE]; } param;
 
-int utf8Print( unsigned char data[], int start ); 
 int bitField( int siz, int pos, unsigned char val );
 int printBit(int pos, unsigned char val);
 int invokeQuestions();
 int error(char *message);
-int covertDecimal(int siz, unsigned char val );
+int convertToDecimal( unsigned char val, int siz );
+unsigned char workByte( int siz, int pos, unsigned char val );
+enum ClassId utf8Class( unsigned char *c );
+int utf8Print( unsigned char data[], int start);
+void arrayPrintHex( unsigned char data[], int start, int size );
+void ex1();
+void ex22();
 
 int main() {
+    //ex1();
+    //ex22();
+    //printf("\n%d\n", utf8Class("高"));
+    unsigned char x[] = { 0x61, 0xc3, 0xa7, 0xc3, 0xa3, 0x6f };
+    arrayPrintHex ( x, 3, 5 );
+    return 0;
+    
+}
+
+void arrayPrintHex( unsigned char data[], int start, int size ){
+    if (start + size > strlen(data)) error("arrayPrintHex valores"); return;
+    printf("{ ");
+    for (int i = 0; i < size; i++) {
+        int j = i+1;
+        if (j < size) {
+            printf("%x, ", data[start + i]);
+        } else {
+            printf("%x ", data[start + i]);
+        }
+    }
+    printf("}\n");
+
+}
+
+
+void ex1() {
     invokeQuestions();
-    int res = convertDecimal(param.size, param.pos, param.val);
+    int res = bitField(param.size, param.pos, param.val);
     printf("Result: %d\n", res);
-    printf("\n%d\n", utf8Class("高"));
-    return res;
+}
+void ex22() {
+    utf8Print("#Fs+Tsd", 4);
 }
 int bitField( int siz, int pos, unsigned char val ) {
+    val = workByte(siz, pos, val);
+    return convertToDecimal(val, siz); 
+}
+unsigned char workByte( int siz, int pos, unsigned char val ) {
     val = val >> BIT_SIZE - (pos + siz);
     val = val << BIT_SIZE - siz;
-    
-    
+    return val;
 }
-int covertDecimal(int siz, unsigned char val ) {
+int convertToDecimal( unsigned char val, int siz ) {
     int result = 0;
     for (int i = ARRAY_SIZE; i > ARRAY_SIZE - siz; i--) {
         result *= 2;
@@ -59,20 +93,7 @@ int printBit(int pos, unsigned char val) {
     printf("\n");
     return 0;
 }
-enum ClassId utf8Class( unsigned char *c ) {
-//     int i;
-//     enum ClassId class;
-//     for(i = 0; i < strlen(c); i++){
-//         class = (0xFF & c[i]);
-//         printf("%02X\n", class);
-//     }
-//     return i++;
-
-
-
-
-
-
-
+int utf8Print( unsigned char data[], int start){
+    printf(" %c\n", data[start]);
+    return strlen(data);
 }
-
