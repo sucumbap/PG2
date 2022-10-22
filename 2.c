@@ -11,8 +11,9 @@
 
 enum ClassId { S_ASC, S_INIT, S_CONT };
 struct fieldParams { int size; int pos; unsigned char val; int arr[ARRAY_SIZE]; } param;
-struct Sentence { unsigned char str[200]; int size; }sentence;
+struct Sentence { unsigned char str[200]; int size; }sentence, phrase;
 
+int flag = 0;
 int bitField( int siz, int pos, unsigned char val );
 int printBit(int pos, unsigned char val);
 int invokeQuestions();
@@ -30,22 +31,20 @@ void ex21();
 void ex22();
 void ex23();
 void ex24();
+void ex31();
 
 int main() {
     //ex1();
     //ex21();
     //ex22();
     //ex23();
-    setlocale(LC_ALL, "PT_pt.UTF-8");
-    ex24();
-    //printf("\n%d\n", utf8Class("高"));
+    //ex24();
+    ex31();
     return 0;
 }
 
 
-int normSymb( char str[], int idx ) {
 
-}
 
 
 
@@ -68,7 +67,16 @@ void ex23() {
 }
 void ex24() {
     inquireWords();
+    
     convertSConSentence();
+}
+void ex31() {
+    char a[] = {"ERAM UMA VEZ UMINDSFVBOIWEDOFPIONB ING UI DSGÇÇ"};
+    for (int i = 0; i < strlen(a); i++) {
+
+        normSymb(a, i);
+    }
+    
 }
 int bitField( int siz, int pos, unsigned char val ) {
     val = workByte(siz, pos, val);
@@ -101,15 +109,32 @@ int error(char *message) {
     printf("\nError: %s Inválido\n", message);
     return 0;
 }
-int printBit(int pos, unsigned char val) {
-    for(int i = ARRAY_SIZE, j = 0; pos <= i; i --, j++) {
-        param.arr[i] = (val >> i) & 0x01;
-        printf(" %d ", param.arr[i]);
+int utf8Print( unsigned char data[], int start ) {
+    unsigned char Masc,temp;                                        // byte para mascara
+    enum ClassId Me = utf8Class(data[start]);
+    
+    if(Me == S_ASC) {
+        printf("%c",data[start]);
+        return 1;
+    }else if(Me == S_INIT){
+        Masc = 224; temp = 192;
+            if ((data[start] & Masc) == temp){
+                printf("%c%c",data[start],data[start+1]);
+                return 2;
+            }
+            Masc = 240; temp = 224;
+            if((data[start] & Masc) == temp){
+                printf("%c%c%c",data[start],data[start+1],data[start+2]);
+                return 3;
+            }
+            Masc = 248; temp = 240;
+            if((data[start] & Masc) == temp){
+                printf("%c%c%c%c",data[start],data[start+1],data[start+2],data[start+3]);
+                return 4;
+            }
     }
-    printf("\n");
     return 0;
 }
-
 enum ClassId utf8Class( unsigned char c ) {
     enum ClassId Me;
     if(c<0){error("ERROR");return -1;}
@@ -128,37 +153,31 @@ enum ClassId utf8Class( unsigned char c ) {
     return Me;
 }
 void arrayPrintHex( unsigned char data[], int start, int size ){
-    if (start + size > strlen(data)) {
-        error("arrayPrintHex valores");
+     if (size == 2){
+        printf("{%.2x %.2x}",data[start],data[start+1]);
         return;
     }
-    printf("{ ");
-    for (int i = 0; i < size; i++) {
-        int j = i + start;
-        if (j < size) {
-            printf("%x, ", data[j]);
-        } else {
-            printf("%x }", data[j]);
-        }
+    if(size == 3){
+        printf("{%.2x %.2x %.2x}",data[start],data[start+1],data[start +2]);
+        return;
     }
+    if(size == 4){
+        printf("{%.2x %.2x %.2x %.2x}",data[start],data[start+1],data[start+2],data[start+3]);
+        return;
+    }
+    return ;
 }
 int convertSConSentence() {
-    for (int i = 0, j = 0; i < sentence.size; i++) {
-        if(utf8Class(sentence.str[i]) == S_INIT || utf8Class(sentence.str[i]) == S_CONT) {
-           //arrayPrintHex(sentence.str, i, 2);
-           printf("%c", sentence.str[i]);
+    for (int i = 0, j = 1; i < sentence.size; i++) {
+        if(utf8Class(sentence.str[i]) == S_INIT || utf8Class(sentence.str[i]) == S_CONT) {         
+            j = utf8Print(sentence.str,i);
+            arrayPrintHex(sentence.str, i, j);
         } else {
             printf("%c", sentence.str[i]);
         }
     }
     return 0;
 }
-int utf8Print( unsigned char data[], int start){
-    printf("%c", data[start]);
-    arrayPrintHex(sentence.str, start, 2);
-    return strlen(data);
-}
-
 int inquireWords() {
     int j = 0;
     printf("\nColoque uma frase com no maximo 200 chars:\n");
@@ -167,6 +186,34 @@ int inquireWords() {
         if(sentence.str[i] =='\n') {i = 300;} else {j++;}
     }
     sentence.size = j;
-    printf("\n%d\n", j);
     return j;
+}
+
+int normSymb( char str[], int idx ) {
+    // char *p = &str[idx];
+    // *p = *p > 0x40 && *p < 0x5b ? *p | 0x60 : *p;
+    enum ClassId Me = utf8Class(str[idx]);
+    switch (Me) {
+        case S_ASC:
+            printf("%c", tolower(str[idx]));
+        break;
+        default:
+            utf8Print(str, idx);
+            //printf("%c", str[idx] & 0x40);
+            if(str[idx] >= 'A' && str[idx] <= 'Z') {
+                str[idx] ^= 32;
+                utf8Print(str, idx);
+
+            } else if(str[idx] >= 'a' && str[idx] <= 'z') {
+                utf8Print(str, idx);
+            } else {
+                utf8Print(str, idx);
+            }
+
+
+        break;
+    }
+
+    
+    return 0;
 }
