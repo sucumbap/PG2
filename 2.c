@@ -28,11 +28,9 @@ void ex1(); void ex21(); void ex22(); void ex23(); void ex24(); void ex31(); voi
 
 int main() {
     //ex1(); //ex21(); //ex22(); //ex23(); //ex24(); //ex31(); //ex32();
-    getTestValuesFromTxt(2);
+    getTestValuesFromTxt(3);
     return 0;
 }
-
-
 void ex1() {
     invokeQuestions();
     int res = bitField(param.size, param.pos, param.val);
@@ -108,11 +106,10 @@ void arrayPrintHex( unsigned char data[], int start, int size ){
     if (size == 2){ printf("{%.2x %.2x}",data[start],data[start+1]); return; }
     if(size == 3){ printf("{%.2x %.2x %.2x}",data[start],data[start+1],data[start +2]); return; }
     if(size == 4){ printf("{%.2x %.2x %.2x %.2x}",data[start],data[start+1],data[start+2],data[start+3]); return;}
-    return;
 }
 int convertSConSentence() {
-    printf("pop");
     for (int i = 0, j = 1; i < sentence.size; i++) {
+
         if(utf8Class(sentence.str[i]) == S_INIT || utf8Class(sentence.str[i]) == S_CONT) {         
             j = utf8Print(sentence.str,i);
             arrayPrintHex(sentence.str, i, j);
@@ -151,7 +148,7 @@ int normSymb( char str[], int idx ) {
     str[idx] = tolower(c);
     if((str[idx] == 45) && ((str[idx + 1] == 32) || str[idx -1] == 32)) str[idx] = 32;
     if(Me == S_CONT || Me == S_INIT) {
-        if( c < 0xc3) str[idx] = 32;
+        if( c < 195 || c > 8000) str[idx] = 32;
         return utf8PrintLower(str, idx);
     } else { return utf8Print(str, idx); }
 }
@@ -162,40 +159,43 @@ int getTestValuesFromTxt(int index) {
     FILE    *textfile;
     unsigned char    line[MAX_LINE_LENGTH];
     switch (index) {
-    case 1:
-        textfile = fopen("1.txt", "r");
-        break;
-    case 2:
-        textfile = fopen("2.txt", "r");
-        break;
-    case 3:
-        textfile = fopen("3.txt", "r");
-        break;
-    default:
-        error("test index");
-        break;
-    }
+    case 1: textfile = fopen("1.txt", "r"); break;
+    case 2: textfile = fopen("2.txt", "r");break;
+    case 3: textfile = fopen("3.txt", "r"); break;
+    default: error("test index"); break; }
     if(textfile == NULL) error("test file not found");
     switch (index) {
-    case 1:
-        while(fgets(line, MAX_LINE_LENGTH, textfile)){
-            int res = bitField(line[0], line[2], line[4]);
-            printf("Result: %d vs Valor dado: %d\n", res, line[6]);
-        }
-        break;
-    case 2:
-        int i = 1, j = 0;
-        while(fgets(sentence.str, MAX_LINE_LENGTH, textfile)){
-            if (i > 0) {
-                printf("Sentence recolhida: %s\n", sentence.str);
-                printf("Sentence gerada:");
-                convertSConSentence();
-                printf("\n");
-            } else if (i < 0) {
-                printf("Sentence correta recolhida: %s:\n", sentence.str);
+        case 1:
+            while(fgets(line, MAX_LINE_LENGTH, textfile)){
+                int res = bitField(line[0], line[2], line[4]);
+                printf("Result: %d vs Valor dado: %d\n", res, line[6]);
+            } break;
+        case 2:
+            int i = 1, j = 0;
+            while(fgets(sentence.str, MAX_LINE_LENGTH, textfile)){
+                if (i > 0) {
+                    printf("Sentence recolhida: %s\n", sentence.str);
+                    printf("Sentence gerada: ");
+                    sentence.size = strlen(sentence.str);
+                    convertSConSentence();
+                    printf("\n");
+                } else if (i < 0) {
+                    printf("Sentence correta recolhida: %s\n", sentence.str);
+                } i *= -1;
+            } break;
+        case 3:
+            i = 1;
+            while(fgets(line, MAX_LINE_LENGTH, textfile)) {
+                if(i > 0) {
+                    printf("Sentence recolhida: %s\n", line);
+                    printf("Sentence gerada: ");
+                    normString(line);
+                    printf("\n");
+                } else if (i < 0) { printf("Sentence esperaca: %s\n", line); }
+                
+                i *= -1;
             }
-            i *= -1;
-        }
+            break;
     }
     fclose(textfile);
     return 0;
