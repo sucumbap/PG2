@@ -1,0 +1,2 @@
+Permite usar acentuação e outros símbolos como «Euro» €.
+Permite  usar  acentuaç{c3  a7}ã{c3  a3}o  e  outros  sí{c3 ad}mbolos como «{c2 ab}Euro»{c2 bb} €{e2 82 ac}.
